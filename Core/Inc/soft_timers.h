@@ -8,6 +8,8 @@
 #ifndef INC_SOFT_TIMERS_H_
 #define INC_SOFT_TIMERS_H_
 
+#include "stdint.h"
+
 #define HAL_TICK_MAX_TIMERS	6
 
 typedef enum _tickTimerResult { tRC_OK = 0, tRC_ERR } tickTimerResult;
