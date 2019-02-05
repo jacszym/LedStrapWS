@@ -78,16 +78,18 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define CH1_PWR_Pin GPIO_PIN_2
-#define CH1_PWR_GPIO_Port GPIOA
-#define CH2_PWR_Pin GPIO_PIN_7
-#define CH2_PWR_GPIO_Port GPIOA
+#define PWR_CH1_Pin GPIO_PIN_1
+#define PWR_CH1_GPIO_Port GPIOA
+#define PWR_CH2_Pin GPIO_PIN_3
+#define PWR_CH2_GPIO_Port GPIOA
+#define D_CLK_Pin GPIO_PIN_5
+#define D_CLK_GPIO_Port GPIOA
+#define DOUT_CH2_Pin GPIO_PIN_7
+#define DOUT_CH2_GPIO_Port GPIOA
 #define LED_Pin GPIO_PIN_3
 #define LED_GPIO_Port GPIOB
-#define CH1_DOUT_Pin GPIO_PIN_4
-#define CH1_DOUT_GPIO_Port GPIOB
-#define CH2_DOUT_Pin GPIO_PIN_5
-#define CH2_DOUT_GPIO_Port GPIOB
+#define DOUT_CH1_Pin GPIO_PIN_5
+#define DOUT_CH1_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

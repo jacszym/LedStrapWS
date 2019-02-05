@@ -40,13 +40,16 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "tim.h"
+#include "dma.h"
+#include "spi.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "soft_timers.h"
 #include "led.h"
+//#include "ledWS.h"
+#include "ledWS.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -109,18 +112,24 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_TIM3_Init();
+  MX_DMA_Init();
+  //MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   infoLed iLed;
+  decorLed::decorLED Pixels(5,3);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
   iLed.start();
-
+  decorLed::singlePixel tt = {0x70, 0 , 0};
+  Pixels.setPixel(0,0, tt);
+  Pixels.refresh();
   while (1)
   {
+
 	  iLed.task();
     /* USER CODE END WHILE */
 

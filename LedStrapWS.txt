@@ -1,0 +1,62 @@
+Configuration	LedStrapWS
+STM32CubeMX 	5.0.0
+Date	12/23/2018
+MCU	STM32F303K8Tx
+
+
+
+PERIPHERALS	MODES	FUNCTIONS	PINS
+SPI1	Transmit Only Master	SPI1_MOSI	PB5
+SPI1	Transmit Only Master	SPI1_SCK	PA5
+SYS	SysTick	SYS_VS_Systick	VP_SYS_VS_Systick
+
+
+
+Pin Nb	PINs	FUNCTIONs	LABELs
+7	PA1	GPIO_Output	PWR_CH1
+9	PA3	GPIO_Output	PWR_CH2
+11	PA5	SPI1_SCK	D_CLK
+13	PA7	GPIO_Output	DOUT_CH2
+26	PB3	GPIO_Output	LED
+28	PB5	SPI1_MOSI	DOUT_CH1
+PERIPHERALS	MODES	FUNCTIONS	PINS
+SPI1	Transmit Only Master	SPI1_MOSI	PB5
+SPI1	Transmit Only Master	SPI1_SCK	PA5
+SYS	SysTick	SYS_VS_Systick	VP_SYS_VS_Systick
+
+
+
+Pin Nb	PINs	FUNCTIONs	LABELs
+7	PA1	GPIO_Output	PWR_CH1
+9	PA3	GPIO_Output	PWR_CH2
+11	PA5	SPI1_SCK	D_CLK
+13	PA7	GPIO_Output	DOUT_CH2
+26	PB3	GPIO_Output	LED
+28	PB5	SPI1_MOSI	DOUT_CH1
+
+
+
+SOFTWARE PROJECT
+
+Project Settings : 
+Project Name : LedStrapWS
+Project Folder : E:\Home\Documents\AtolicSTM32\LedStrapWS
+Toolchain / IDE : TrueSTUDIO
+Firmware Package Name and Version : STM32Cube FW_F3 V1.10.0
+
+
+Code Generation Settings : 
+STM32Cube Firmware Library Package : Copy only the necessary library files
+Generate peripheral initialization as a pair of '.c/.h' files per peripheral : Yes
+Backup previously generated files when re-generating : No
+Delete previously generated files when not re-generated : Yes
+Set all free pins as analog (to optimize the power consumption) : No
+
+
+Toolchains Settings : 
+Compiler Optimizations : 
+
+
+
+
+
