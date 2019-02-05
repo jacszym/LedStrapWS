@@ -126,6 +126,8 @@ int main(void)
   iLed.start();
   decorLed::singlePixel tt = {0x70, 0 , 0};
   Pixels.setPixel(0,0, tt);
+  tt = {0x0, 30 , 0};
+  Pixels.setPixel(1,0, tt);
   Pixels.refresh();
   while (1)
   {

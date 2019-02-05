@@ -40,7 +40,7 @@ public:
 
 	void setPixel(uint32_t x, uint32_t y, singlePixel pixelValue)
 	{
-		if(( x < maxPixelX ) && ( y < maxPixelY )) pixels[x*y] = pixelValue;
+		if(( x < maxPixelX ) && ( y < maxPixelY )) pixels[x+y*maxPixelX] = pixelValue;
 	}
 
 	void setPixel(uint32_t x, singlePixel pixelValue)
@@ -51,7 +51,7 @@ public:
 	singlePixel getPixel(uint32_t x, uint32_t y = 0)
 	{
 		if(( x < maxPixelX ) && ( y < maxPixelY ))
-			return pixels[x * y];
+			return pixels[x+y*maxPixelX];
 		else
 		{
 			singlePixel zeroPixel = {0};
