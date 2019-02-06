@@ -10,7 +10,7 @@
 
 #include "stm32f3xx_hal.h"
 #include "string.h"
-#include "main.h"
+#include "spi.h"
 
 namespace spiTransport
 {
@@ -23,128 +23,85 @@ class transportLayer
 {
 public:
 	transportLayer():
-	hspi1({0}),
-	hdma_spi1_tx({0})
+	doubleBufferingUsed(false),
+	activeBuffer(0),
+	activeBufferDataSize(0)
 	{
-		for(size_t index = 0; index < (sizeof(encodedBitsBuffer)/sizeof(uint16_t)); index++)
-			encodedBitsBuffer[index] = WS_ZERO;
-
-		hspi1.Instance = SPI1;
-		hspi1.Init.Mode = SPI_MODE_MASTER;
-		hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-		hspi1.Init.DataSize = SPI_DATASIZE_10BIT;
-		hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-		hspi1.Init.CLKPhase = SPI_PHASE_2EDGE;
-		hspi1.Init.NSS = SPI_NSS_SOFT;
-		hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
-		hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-		hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
-		hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-		hspi1.Init.CRCPolynomial = 7;
-		hspi1.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
-		hspi1.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
-		if (HAL_SPI_Init(&hspi1) != HAL_OK)
-		{
-			Error_Handler();
-		}
-
-		//
-		GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-		/* SPI1 clock enable */
-		__HAL_RCC_SPI1_CLK_ENABLE();
-
-		__HAL_RCC_GPIOA_CLK_ENABLE();
-		__HAL_RCC_GPIOB_CLK_ENABLE();
-
-		/**SPI1 GPIO Configuration
-		 PA5     ------> SPI1_SCK
-		 PB5     ------> SPI1_MOSI
-		*/
-		GPIO_InitStruct.Pin = D_CLK_Pin;
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Pull = GPIO_NOPULL;
-		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-		GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
-		HAL_GPIO_Init(D_CLK_GPIO_Port, &GPIO_InitStruct);
-
-		GPIO_InitStruct.Pin = DOUT_CH1_Pin;
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Pull = GPIO_NOPULL;
-		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-		GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
-		HAL_GPIO_Init(DOUT_CH1_GPIO_Port, &GPIO_InitStruct);
-
-		/* SPI1 DMA Init */
-		/* SPI1_TX Init */
-		hdma_spi1_tx.Instance = DMA1_Channel3;
-		hdma_spi1_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
-		hdma_spi1_tx.Init.PeriphInc = DMA_PINC_DISABLE;
-		hdma_spi1_tx.Init.MemInc = DMA_MINC_ENABLE;
-		hdma_spi1_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
-		hdma_spi1_tx.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
-		hdma_spi1_tx.Init.Mode = DMA_NORMAL;
-		hdma_spi1_tx.Init.Priority = DMA_PRIORITY_LOW;
-		if (HAL_DMA_Init(&hdma_spi1_tx) != HAL_OK)
-		{
-			Error_Handler();
-		}
-
-		__HAL_LINKDMA(&hspi1, hdmatx, hdma_spi1_tx);
+		// "clear" bits buffer
+		for(int32_t buffNr = 0; buffNr < 2; buffNr++)
+			for(size_t index = 0; index < (sizeof(encodedBitsBuffer[0])/sizeof(uint16_t)); index++)
+				encodedBitsBuffer[buffNr][index] = WS_ZERO;
 	}
 
 	~transportLayer()
 	{
-		if(hspi1.Instance == SPI1)
-		{
-			/* Peripheral clock disable */
-			__HAL_RCC_SPI1_CLK_DISABLE();
 
-			/**SPI1 GPIO Configuration
-			PA5     ------> SPI1_SCK
-			PB5     ------> SPI1_MOSI
-			*/
-			HAL_GPIO_DeInit(D_CLK_GPIO_Port, D_CLK_Pin);
-
-			HAL_GPIO_DeInit(DOUT_CH1_GPIO_Port, DOUT_CH1_Pin);
-
-			/* SPI1 DMA DeInit */
-			HAL_DMA_DeInit(hspi1.hdmatx);
-		}
 	}
 
-	void transmit(uint8_t *data, size_t size)
+	void transmitActiveBuffer(void)
 	{
-			HAL_SPI_Transmit_DMA(&hspi1, (uint8_t*)encodedBitsBuffer, encodeData(data, size));
+		uint8_t *pBuffer = nullptr;
+
+		if( doubleBufferingUsed )
+		{
+			pBuffer = activeBuffer == 0 ? (uint8_t*)(&encodedBitsBuffer[0]) : (uint8_t*)(&encodedBitsBuffer[1]);
+		}
+		else
+		{
+			pBuffer = (uint8_t*)(&encodedBitsBuffer[0]);
+		}
+		HAL_SPI_Transmit_DMA(&hspi1, pBuffer, activeBufferDataSize);
 	}
 
-private:
-	static const uint16_t WS_ONE = 0x03f0;	// b: 0000001110000000
-	static const uint16_t WS_ZERO = 0x0380;	// b: 0000001111110000
-
-	SPI_HandleTypeDef hspi1;
-	DMA_HandleTypeDef hdma_spi1_tx;
-
-	uint16_t encodedBitsBuffer[T_MAX_LED_BITS];
-
-	size_t encodeData(uint8_t *data, size_t size)
+	void encodeData(uint8_t *data, size_t size)
 	{
 		if( size > T_MAX_LED_BYTES )
-			return 0;
+			return;
 
-		uint16_t *pBuff = encodedBitsBuffer;
+		uint16_t *pBuffer = nullptr;
+
+		if( doubleBufferingUsed )
+		{
+			if( activeBuffer == 0 )
+			{
+				pBuffer = encodedBitsBuffer[1];
+				activeBuffer = 1;
+			}
+			else
+			{
+				pBuffer = encodedBitsBuffer[0];
+				activeBuffer = 0;
+			}
+		}
+		else
+		{
+			pBuffer = encodedBitsBuffer[0];
+		}
+
+		uint16_t *pStart = pBuffer;
 
 		for(uint32_t index = 0; index < size; index++)
 		{
 			uint8_t value = *data++;
 			for(int32_t bit_nr = 0; bit_nr < 8; bit_nr++)
 			{
-				*pBuff++ = ( value & 0x80 ) ? WS_ONE : WS_ZERO;
+				*pBuffer++ = ( value & 0x80 ) ? WS_ONE : WS_ZERO;
 				value <<= 1;
 			}
 		}
-		return ( pBuff - encodedBitsBuffer);
+		activeBufferDataSize =  (uint16_t)(pBuffer - pStart);
 	}
+
+
+
+private:
+	static const uint16_t WS_ONE = 0x03f0;	// b: 0000001110000000
+	static const uint16_t WS_ZERO = 0x0380;	// b: 0000001111110000
+
+	bool doubleBufferingUsed;
+	uint8_t activeBuffer;
+	uint16_t activeBufferDataSize;
+	uint16_t encodedBitsBuffer[2][T_MAX_LED_BITS];
 };
 
 } /* spiTransport */

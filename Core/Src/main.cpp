@@ -113,7 +113,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
-  //MX_SPI1_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   infoLed iLed;
   decorLed::decorLED Pixels(5,3);
@@ -124,10 +124,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 
   iLed.start();
-  decorLed::singlePixel tt = {0x70, 0 , 0};
-  Pixels.setPixel(0,0, tt);
-  tt = {0x0, 30 , 0};
-  Pixels.setPixel(1,0, tt);
+  decorLed::singlePixel tt = {0x0, 0x40 , 0};
+  for(int32_t col = 0; col < 3; col++)
+	  for(int32_t index = 0; index < 5; index++)
+		  Pixels.setPixel(index,col, tt);
   Pixels.refresh();
   while (1)
   {

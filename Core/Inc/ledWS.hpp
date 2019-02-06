@@ -61,7 +61,7 @@ public:
 
 	void refresh(void)
 	{
-		transport.transmit((uint8_t*)(&pixels[0]), 3*maxPixelNr);
+		transport.transmitActiveBuffer();
 	}
 
 private:
