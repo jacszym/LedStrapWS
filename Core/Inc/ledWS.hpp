@@ -33,10 +33,15 @@ public:
 		maxPixelY(y),
 		maxPixelNr(x*y)
 	{
+		clearPixels();
+	};
+
+	void clearPixels(void)
+	{
 		singlePixel zeroPixel = {0};
 		for(uint32_t index = 0; index < D_MAX_PIXEL; index++)
 			pixels[index] = zeroPixel;
-	};
+	}
 
 	void setPixel(uint32_t x, uint32_t y, singlePixel pixelValue)
 	{
@@ -57,6 +62,23 @@ public:
 			singlePixel zeroPixel = {0};
 			return zeroPixel;
 		}
+	}
+
+	void enableDoublebuffering(bool state)
+	{
+		if( state )
+		{
+			transport.setDoubleBuffering();
+		}
+		else
+		{
+			transport.setSingleBuffering();
+		}
+	}
+
+	void prepareData(void)
+	{
+		transport.encodeData((uint8_t*)pixels, 3*maxPixelNr);
 	}
 
 	void refresh(void)

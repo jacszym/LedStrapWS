@@ -27,15 +27,20 @@ public:
 	activeBuffer(0),
 	activeBufferDataSize(0)
 	{
-		// "clear" bits buffer
-		for(int32_t buffNr = 0; buffNr < 2; buffNr++)
-			for(size_t index = 0; index < (sizeof(encodedBitsBuffer[0])/sizeof(uint16_t)); index++)
-				encodedBitsBuffer[buffNr][index] = WS_ZERO;
+		clearBitsBuffer();
 	}
 
 	~transportLayer()
 	{
 
+	}
+
+	void clearBitsBuffer(void)
+	{
+		// "clear" bits buffer
+		for( int32_t buffNr = 0; buffNr < 2; buffNr++ )
+			for( size_t index = 0; index < (sizeof(encodedBitsBuffer[0])/sizeof(uint16_t)); index++ )
+				encodedBitsBuffer[buffNr][index] = WS_ZERO;
 	}
 
 	void transmitActiveBuffer(void)
@@ -44,7 +49,7 @@ public:
 
 		if( doubleBufferingUsed )
 		{
-			pBuffer = activeBuffer == 0 ? (uint8_t*)(&encodedBitsBuffer[0]) : (uint8_t*)(&encodedBitsBuffer[1]);
+			pBuffer = activeBuffer == 0 ? (uint8_t*)(encodedBitsBuffer[0]) : (uint8_t*)(encodedBitsBuffer[1]);
 		}
 		else
 		{
@@ -92,16 +97,29 @@ public:
 		activeBufferDataSize =  (uint16_t)(pBuffer - pStart);
 	}
 
+	void setSingleBuffering(void)
+	{
+		doubleBufferingUsed = false;
+	}
 
+	void setDoubleBuffering(void)
+	{
+		doubleBufferingUsed = true;
+	}
+
+	bool getBuffering(void)
+	{
+		return doubleBufferingUsed;
+	}
 
 private:
 	static const uint16_t WS_ONE = 0x03f0;	// b: 0000001110000000
 	static const uint16_t WS_ZERO = 0x0380;	// b: 0000001111110000
 
-	bool doubleBufferingUsed;
-	uint8_t activeBuffer;
-	uint16_t activeBufferDataSize;
-	uint16_t encodedBitsBuffer[2][T_MAX_LED_BITS];
+	bool doubleBufferingUsed;						// using single or double buffer
+	uint8_t activeBuffer;							// number of active buffer (0 or 1)
+	uint16_t activeBufferDataSize;					// data size in buffer
+	uint16_t encodedBitsBuffer[2][T_MAX_LED_BITS];	// buffer
 };
 
 } /* spiTransport */

@@ -124,10 +124,11 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 
   iLed.start();
-  decorLed::singlePixel tt = {0x0, 0x40 , 0};
+  decorLed::singlePixel tt = {0x00, 0x00 , 0x3f};
   for(int32_t col = 0; col < 3; col++)
 	  for(int32_t index = 0; index < 5; index++)
 		  Pixels.setPixel(index,col, tt);
+  Pixels.prepareData();
   Pixels.refresh();
   while (1)
   {
