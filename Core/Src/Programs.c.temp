@@ -1,0 +1,170 @@
+/*
+ * Programs.c
+ *
+ *  Created on: 14 mar 2016
+ *      Author: Jacek
+ */
+
+#include "LedWS.h"
+#include "SysTick.h"
+
+// sekwencja zmian kolorow
+// R = 255, G: 0 -> 255, B = 0
+// R: 255 -> 0, G = 255, B = 0
+// R = 0, G = 255, B: 0 -> 255
+// R = 0, G: 255 -> 0, B = 255
+// R: 0 -> 255, G = 0, B = 255
+// R = 255, G = 0, B: 255 -> 0
+
+void Program1(void *param)
+{
+	uint32_t seg;	// ilosc segmentow
+	uint32_t led;	// ilosc diod na segment
+	uint32_t n;		// ilosc powtorzen
+	uint32_t d;		// czas pomiedzy zmiana (w ms)
+	uint32_t cs;	// zmienna licznikowa segmentow
+	uint32_t cl;	// zmienna licznikowa diod
+	uint32_t color;	// zmienna okreslajaca wartosc koloru
+
+	seg = ((uint32_t*)param)[0];
+	led = ((uint32_t*)param)[1];
+	n = ((uint32_t*)param)[2];
+	d = ((uint32_t*)param)[3];
+
+	// zakladam, ze diody sa wygaszone
+	// rozpoczynam od rozswietlenia koloru czerwonego
+
+	// R: 0 -> 255, G = 0, B = 0
+	for(color = LED_COLOR_MIN_VAL; color < (LED_COLOR_MAX_VAL+1); color++)
+	{
+		for(cs = 0; cs < seg; cs++)
+			for(cl = 0; cl < led; cl++)
+				LedStringsSetColor(0, cs*led + cl, color, LED_COLOR_MIN_VAL, LED_COLOR_MIN_VAL);
+		LedStringsRefresh();
+		SysTickDelayMs(d >> 1);		// 2 x szybciej
+	}
+
+	while(n--)
+	{
+
+		// R = 255, G: 0 -> 255, B = 0
+		for(color = LED_COLOR_MIN_VAL; color < (LED_COLOR_MAX_VAL+1); color++)
+		{
+			for(cs = 0; cs < seg; cs++)
+				for(cl = 0; cl < led; cl++)
+					LedStringsSetColor(0, cs*led + cl, LED_COLOR_MAX_VAL, color, LED_COLOR_MIN_VAL);
+			LedStringsRefresh();
+			SysTickDelayMs(d);
+		}
+		// R = 255, G = 255, B = 0
+
+		// R: 255 -> 0, G = 255, B = 0
+		for(color = LED_COLOR_MIN_VAL; color < (LED_COLOR_MAX_VAL+1); color++)
+		{
+			for(cs = 0; cs < seg; cs++)
+				for(cl = 0; cl < led; cl++)
+					LedStringsSetColor(0, cs*led + cl, LED_COLOR_MAX_VAL - color, LED_COLOR_MAX_VAL, LED_COLOR_MIN_VAL);
+			LedStringsRefresh();
+			SysTickDelayMs(d);
+		}
+		// R = 0, G = 255, B = 0
+
+		// R = 0, G = 255, B: 0 -> 255
+		for(color = LED_COLOR_MIN_VAL; color < (LED_COLOR_MAX_VAL+1); color++)
+		{
+			for(cs = 0; cs < seg; cs++)
+				for(cl = 0; cl < led; cl++)
+					LedStringsSetColor(0, cs*led + cl, LED_COLOR_MIN_VAL, LED_COLOR_MAX_VAL, color);
+			LedStringsRefresh();
+			SysTickDelayMs(d);
+		}
+		// R = 0, G = 255, B = 255
+
+		// R = 0, G: 255 -> 0, B = 255
+		for(color = LED_COLOR_MIN_VAL; color < (LED_COLOR_MAX_VAL+1); color++)
+		{
+			for(cs = 0; cs < seg; cs++)
+				for(cl = 0; cl < led; cl++)
+					LedStringsSetColor(0, cs*led + cl, LED_COLOR_MIN_VAL, LED_COLOR_MAX_VAL - color, LED_COLOR_MAX_VAL);
+			LedStringsRefresh();
+			SysTickDelayMs(d);
+		}
+		// R = 0, G = 0, B = 255
+
+		// R: 0 -> 255, G = 0, B = 255
+		for(color = LED_COLOR_MIN_VAL; color < (LED_COLOR_MAX_VAL+1); color++)
+		{
+			for(cs = 0; cs < seg; cs++)
+				for(cl = 0; cl < led; cl++)
+					LedStringsSetColor(0, cs*led + cl, color, LED_COLOR_MIN_VAL, LED_COLOR_MAX_VAL);
+			LedStringsRefresh();
+			SysTickDelayMs(d);
+		}
+		// R = 255, G = 0, B = 255
+
+		// R = 255, G = 0, B: 255 -> 0
+		for(color = LED_COLOR_MIN_VAL; color < (LED_COLOR_MAX_VAL+1); color++)
+		{
+			for(cs = 0; cs < seg; cs++)
+				for(cl = 0; cl < led; cl++)
+					LedStringsSetColor(0, cs*led + cl, LED_COLOR_MAX_VAL, LED_COLOR_MIN_VAL, LED_COLOR_MAX_VAL - color);
+			LedStringsRefresh();
+			SysTickDelayMs(d);
+		}
+		// R = 255, G = 0, B = 0
+	}
+
+	// koncze wygaszeniel diod LED
+	// R: 255 -> 0, G = 0, B = 0
+	for(color = LED_COLOR_MIN_VAL; color < (LED_COLOR_MAX_VAL+1); color++)
+	{
+		for(cs = 0; cs < seg; cs++)
+			for(cl = 0; cl < led; cl++)
+				LedStringsSetColor(0, cs*led + cl, LED_COLOR_MAX_VAL - color, LED_COLOR_MIN_VAL, LED_COLOR_MIN_VAL);
+		LedStringsRefresh();
+		SysTickDelayMs(d >> 1);
+	}
+}
+
+// zmiana jednego koloru (sin)
+void Program2(void *param)
+{
+	uint32_t seg;	// ilosc segmentow
+	uint32_t led;	// ilosc diod na segment
+	uint32_t n;		// ilosc powtorzen
+	uint32_t d;		// czas pomiedzy zmiana (w ms)
+	uint32_t cs;	// zmienna licznikowa segmentow
+	uint32_t cl;	// zmienna licznikowa diod
+	uint32_t color;	// zmienna okreslajaca wartosc koloru
+	uint32_t mask;	// maska kolorow
+
+	seg = ((uint32_t*)param)[0];
+	led = ((uint32_t*)param)[1];
+	n = ((uint32_t*)param)[2];
+	d = ((uint32_t*)param)[3];
+	mask = ((uint32_t*)param)[4];
+
+	// zakladam, ze diody sa wygaszone
+	// rozpoczynam od rozswietlenia kolorow
+
+	for(color = LED_COLOR_MIN_VAL; color < ((LED_COLOR_MAX_VAL+1)>>1); color++)
+	{
+		for(cs = 0; cs < seg; cs++)
+			for(cl = 0; cl < led; cl++)
+				LedStringsSetColor(0, cs*led + cl, color & (mask >> 16), color & (mask >> 8), color & mask);
+		LedStringsRefresh();
+		SysTickDelayMs(d >> 1);		// 2 x szybciej
+	}
+
+
+	for(color = LED_COLOR_MIN_VAL; color < (LED_COLOR_MAX_VAL+1); color++)
+	{
+		for(cs = 0; cs < seg; cs++)
+			for(cl = 0; cl < led; cl++)
+				LedStringsSetColor(0, cs*led + cl, color & (mask >> 16), color & (mask >> 8), color & mask);
+		LedStringsRefresh();
+		SysTickDelayMs(d >> 1);		// 2 x szybciej
+	}
+
+
+}
